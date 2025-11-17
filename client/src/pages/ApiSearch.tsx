@@ -33,7 +33,7 @@ import { apiService } from '@/services/api';
 import { useStore } from '@/store/useStore';
 import type { SearchParams, VideoInfo } from '@/types';
 import { YOUTUBE_LANGUAGES } from '@/types';
-import { formatDailyGrowth, formatPerSubscriber, getDaysSincePublish } from '@/utils/videoMetrics';
+import { formatDailyGrowth, formatPerSubscriber } from '@/utils/videoMetrics';
 
 const { Option } = Select;
 

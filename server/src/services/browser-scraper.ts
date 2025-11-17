@@ -92,30 +92,33 @@ export class BrowserScraperService {
 
     // 覆盖navigator属性（反检测）
     await page.evaluateOnNewDocument(() => {
-      // 覆盖webdriver属性
+      // @ts-ignore - 浏览器环境
       Object.defineProperty(navigator, 'webdriver', {
         get: () => undefined,
       });
 
-      // 覆盖plugins
+      // @ts-ignore - 浏览器环境
       Object.defineProperty(navigator, 'plugins', {
         get: () => [1, 2, 3, 4, 5],
       });
 
-      // 覆盖languages
+      // @ts-ignore - 浏览器环境
       Object.defineProperty(navigator, 'languages', {
         get: () => ['en-US', 'en'],
       });
 
-      // 覆盖chrome属性
+      // @ts-ignore - 浏览器环境
       (window as any).chrome = {
         runtime: {},
       };
 
-      // 覆盖permissions
+      // @ts-ignore - 浏览器环境
       const originalQuery = window.navigator.permissions.query;
+      // @ts-ignore - 浏览器环境
       window.navigator.permissions.query = (parameters: any) =>
+        // @ts-ignore - 浏览器环境
         parameters.name === 'notifications'
+          // @ts-ignore - 浏览器环境
           ? Promise.resolve({ state: Notification.permission } as PermissionStatus)
           : originalQuery(parameters);
     });
@@ -231,13 +234,17 @@ export class BrowserScraperService {
     while (scrollAttempts < maxScrollAttempts) {
       // 滚动到页面底部
       await page.evaluate(() => {
+        // @ts-ignore - 浏览器环境
         window.scrollTo(0, document.documentElement.scrollHeight);
       });
 
       await this.randomDelay();
 
       // 检查页面高度是否变化
-      const currentHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+      const currentHeight = await page.evaluate(() =>
+        // @ts-ignore - 浏览器环境
+        document.documentElement.scrollHeight
+      );
 
       if (currentHeight === previousHeight) {
         // 页面没有变化，可能已经加载完所有内容
@@ -252,7 +259,7 @@ export class BrowserScraperService {
   // 提取视频信息
   private async extractVideos(page: Page, params: SearchParams): Promise<VideoInfo[]> {
     const videos = await page.evaluate((maxResults) => {
-      // 解析播放量文本（内联函数，因为在浏览器上下文中无法访问类方法）
+      // @ts-ignore - 浏览器环境
       const parseViewCount = (text: string): number => {
         const match = text.match(/([\d.]+)\s*([KMB]?)/i);
         if (!match) return 0;
@@ -272,10 +279,12 @@ export class BrowserScraperService {
         }
       };
 
+      // @ts-ignore - 浏览器环境
       const videoElements = document.querySelectorAll('ytd-video-renderer, ytd-reel-item-renderer');
       const results: any[] = [];
 
-      videoElements.forEach((element, index) => {
+      // @ts-ignore - 浏览器环境
+      videoElements.forEach((element: any, index: number) => {
         if (index >= maxResults) return;
 
         try {

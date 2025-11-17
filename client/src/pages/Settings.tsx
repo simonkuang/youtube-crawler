@@ -3,19 +3,16 @@ import {
   Card,
   Form,
   Input,
-  Select,
   Button,
   Switch,
   Space,
   message,
-  Divider,
   Tag,
   Alert,
   InputNumber,
 } from 'antd';
 import {
   SaveOutlined,
-  DeleteOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   LoginOutlined,
@@ -27,7 +24,7 @@ import type { AppSettings } from '@/types';
 
 export const Settings: React.FC = () => {
   const [form] = Form.useForm<AppSettings>();
-  const { settings, setSettings, authStatus, setAuthStatus } = useStore();
+  const { setSettings, authStatus, setAuthStatus } = useStore();
   const [loading, setLoading] = useState(false);
   const [testingProxy, setTestingProxy] = useState<string | null>(null);
 

@@ -29,12 +29,12 @@ router.put('/', (req, res) => {
 
     // 验证代理列表格式
     if (settings.proxyList) {
-      const proxies =
+      const proxies: string[] =
         typeof settings.proxyList === 'string'
-          ? settings.proxyList.split('\n').filter((p) => p.trim())
-          : settings.proxyList;
+          ? (settings.proxyList as string).split('\n').filter((p: string) => p.trim())
+          : Array.isArray(settings.proxyList) ? settings.proxyList : [];
 
-      settings.proxyList = proxies.map((p) => p.trim());
+      settings.proxyList = proxies.map((p: string) => p.trim());
     }
 
     // 保存设置

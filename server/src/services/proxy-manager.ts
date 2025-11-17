@@ -50,22 +50,23 @@ export class ProxyManager {
   }
 
   // 创建代理Agent
-  createProxyAgent(proxyUrl: string): HttpProxyAgent | HttpsProxyAgent {
+  createProxyAgent(proxyUrl: string): HttpProxyAgent<string> | HttpsProxyAgent<string> {
     if (proxyUrl.startsWith('https://')) {
-      return new HttpsProxyAgent(proxyUrl);
+      return new HttpsProxyAgent<string>(proxyUrl);
     }
-    return new HttpProxyAgent(proxyUrl);
+    return new HttpProxyAgent<string>(proxyUrl);
   }
 
   // 测试代理连接
   static async testProxy(proxyUrl: string): Promise<boolean> {
     try {
       const agent = proxyUrl.startsWith('https://')
-        ? new HttpsProxyAgent(proxyUrl)
-        : new HttpProxyAgent(proxyUrl);
+        ? new HttpsProxyAgent<string>(proxyUrl)
+        : new HttpProxyAgent<string>(proxyUrl);
 
-      const fetch = (await import('node-fetch')).default;
-      const response = await fetch('https://www.google.com', {
+      // @ts-ignore - node-fetch 类型声明缺失
+      const { default: fetch } = await import('node-fetch');
+      const response: any = await fetch('https://www.google.com', {
         agent: agent as any,
         timeout: 10000,
       });

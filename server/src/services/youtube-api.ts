@@ -197,7 +197,7 @@ export class YouTubeApiService {
       duration: this.formatDuration(duration),
       tags: snippet.tags || [],
       isShorts,
-      language: snippet.defaultLanguage || snippet.defaultAudioLanguage,
+      language: snippet.defaultLanguage || snippet.defaultAudioLanguage || undefined,
       url: `https://www.youtube.com/watch?v=${item.id}`,
     };
   }
