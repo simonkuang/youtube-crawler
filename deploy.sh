@@ -173,21 +173,28 @@ stop_old_service() {
         # 使用脚本管理
         if [ -f "$PROJECT_ROOT/service.sh" ]; then
             "$PROJECT_ROOT/service.sh" stop || true
-        else
-            # 手动查找并停止进程
-            if [ -f "$PID_DIR/server.pid" ]; then
-                SERVER_PID=$(cat "$PID_DIR/server.pid")
-                if kill -0 "$SERVER_PID" 2>/dev/null; then
-                    kill "$SERVER_PID" || true
-                    sleep 2
-                    kill -9 "$SERVER_PID" 2>/dev/null || true
-                fi
-                rm -f "$PID_DIR/server.pid"
-            fi
-
-            # 强制杀死可能残留的进程
-            pkill -f "node.*server/dist/index.js" || true
         fi
+
+        # 强制清理可能残留的进程（更彻底）
+        # 查找所有可能的后端进程
+        PIDS=$(lsof -ti:3001 2>/dev/null || true)
+        if [ -n "$PIDS" ]; then
+            warning "发现残留进程占用端口 3001，正在清理..."
+            echo "$PIDS" | xargs kill -15 2>/dev/null || true
+            sleep 3
+            # 如果还在运行，强制杀死
+            PIDS=$(lsof -ti:3001 2>/dev/null || true)
+            if [ -n "$PIDS" ]; then
+                echo "$PIDS" | xargs kill -9 2>/dev/null || true
+            fi
+        fi
+
+        # 也尝试通过进程名查找
+        pkill -f "node.*server/dist/index.js" || true
+
+        # 清理 PID 文件
+        rm -f "$PID_DIR/server.pid"
+
         success "已停止旧服务"
     fi
 
