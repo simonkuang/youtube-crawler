@@ -38,20 +38,37 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 错误处理中间件
+// 静态文件服务（生产环境）
+if (process.env.NODE_ENV === 'production') {
+  const clientDistPath = path.join(__dirname, '../../client/dist');
+
+  // 提供静态文件
+  app.use(express.static(clientDistPath, {
+    maxAge: '1y',
+    etag: true,
+    lastModified: true,
+  }));
+
+  // SPA 路由支持（所有非 API 请求返回 index.html）
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+} else {
+  // 开发环境的 404 处理
+  app.use((req, res) => {
+    res.status(404).json({
+      success: false,
+      error: '接口不存在',
+    });
+  });
+}
+
+// 错误处理中间件（必须在最后）
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('服务器错误:', err);
   res.status(500).json({
     success: false,
     error: err.message || '服务器内部错误',
-  });
-});
-
-// 404处理
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: '接口不存在',
   });
 });
 
