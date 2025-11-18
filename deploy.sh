@@ -165,8 +165,47 @@ stop_old_service() {
     if [ "$ENABLE_SUPERVISOR" = "true" ]; then
         # 使用 supervisord
         if [ -f "$PID_DIR/supervisord.pid" ]; then
+            # 先停止所有程序
             supervisorctl -c "$PROJECT_ROOT/supervisord.conf" stop all || true
+            sleep 2
+
+            # 关闭 supervisord 守护进程
             supervisorctl -c "$PROJECT_ROOT/supervisord.conf" shutdown || true
+            sleep 2
+
+            # 确保端口已释放
+            RETRY_COUNT=0
+            MAX_RETRIES=10
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                PIDS=$(lsof -ti:3001 2>/dev/null || true)
+                if [ -z "$PIDS" ]; then
+                    success "端口 3001 已释放"
+                    break
+                fi
+
+                warning "等待端口 3001 释放... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+
+                # 如果等待超过5次，强制清理
+                if [ $RETRY_COUNT -ge 5 ]; then
+                    warning "强制清理占用端口 3001 的进程..."
+                    echo "$PIDS" | xargs kill -15 2>/dev/null || true
+                    sleep 2
+                    PIDS=$(lsof -ti:3001 2>/dev/null || true)
+                    if [ -n "$PIDS" ]; then
+                        echo "$PIDS" | xargs kill -9 2>/dev/null || true
+                    fi
+                fi
+
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                sleep 2
+            done
+
+            # 最终检查
+            PIDS=$(lsof -ti:3001 2>/dev/null || true)
+            if [ -n "$PIDS" ]; then
+                error "无法释放端口 3001，仍有进程占用: $PIDS"
+            fi
+
             success "已停止 supervisord"
         fi
     else
